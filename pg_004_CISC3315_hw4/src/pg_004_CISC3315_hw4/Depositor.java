@@ -14,6 +14,7 @@ public class Depositor {
 		SSnumber = _SSnumber;
 	}
 	
+	//getters
 	public Name getNames(){
 		return name;
 	}
