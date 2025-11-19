@@ -202,5 +202,5 @@ public abstract class Account {
 		
 		public abstract TransactionReceipt makedeposit(TransactionTicket ticket, Scanner userinput);
 		
-		public abstract TransactionReceipt clearCheck(TransactionTicket ticket, Calendar checkDate);
+		public abstract TransactionReceipt clearCheck(TransactionTicket ticket, Calendar date);
 }

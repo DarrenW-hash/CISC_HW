@@ -274,37 +274,34 @@ public class Main {
 			int year = userInput.nextInt();
 			// Adjust for zero-based months in Calendar
 			maturityDate.set(year, month - 1, day);    
-		    Account newAccount = new Account(d,accountNumber,accountType,0.0, status, maturityDate);
+		    Account newAccount = new CDAccount(d,accountNumber,accountType,0.0, status, maturityDate);
 		    TransactionReceipt receipt = bank.makeNewAcct(newAccount);
-		    
 		        if(receipt.getTransactionSuccessIndicatorFlag() == false) {
 		        	outputWriter.println(receipt.toString());
 		        }else {
 		        	// Print success message including maturity date	
 		        	outputWriter.println(receipt.toString());
-//		        	outputWriter.printf("Account Type : %s%nSSN : %s%nAccount Status : %s%nMaturity Date : %tD%n", 
-//		        			accountType,
-//		        			ssn,
-//		        			status,
-//		        			maturityDate);
 		        }
 
-		    }else {
+		    }else if (accountType.equals("Saving")) {
 		    	// Create a non-CD account (Checking or Savings) with default balance = 0.0
-			    Account newAccount = new Account(d, accountNumber,accountType,0.0, status);
+			    Account newAccount = new SavingAccounts(d, accountNumber,accountType,0.0, status);
 			    TransactionReceipt receipt = bank.makeNewAcct(newAccount);
 			    // Handle success or failure messages
 			    if(receipt.getTransactionSuccessIndicatorFlag() == false) {
 			    	outputWriter.println(receipt.toString());
 		        }else {
-		        	// Print confirmation message for non-CD account
-//		        	outputWriter.printf("Account Number : %d%nAccount Type : %s%nSSN : %s%nAccount Status : %s%n", 
-//		        			receipt.getTransactionTicket().getAccountnumber(),
-//		        			accountType,
-//		        			ssn,
-//		        			status);
 		        	outputWriter.println(receipt.toString());
-//		        	outputWriter.println();
+		        }
+		    }else {
+		    	// Create a non-CD account (Checking or Savings) with default balance = 0.0
+			    Account newAccount = new CheckingAccount(d, accountNumber,accountType,0.0, status);
+			    TransactionReceipt receipt = bank.makeNewAcct(newAccount);
+			    // Handle success or failure messages
+			    if(receipt.getTransactionSuccessIndicatorFlag() == false) {
+			    	outputWriter.println(receipt.toString());
+		        }else {
+		        	outputWriter.println(receipt.toString());
 		        }
 		    }
 		}

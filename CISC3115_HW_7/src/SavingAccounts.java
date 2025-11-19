@@ -20,7 +20,6 @@ public class SavingAccounts extends Account{
 
 	@Override
 	public Account getCopy() {
-		System.out.println("In Saving Account getCopy()");
 		return new SavingAccounts(this);
 	}
 
@@ -84,12 +83,12 @@ public class SavingAccounts extends Account{
 			}	
 		}
 	}
-		
+
+	//Clearing a Savings Account is not Allowed
 	@Override
 	public TransactionReceipt clearCheck(TransactionTicket ticket, Calendar checkDate) {
 		double preTransactionBalance = getbalance();
 		String reason = "Error only Clear Checking Accounts. " + "Account Type : " + getaccountType();
-//		receipt = new TransactionReceipt(ticket,false,reason,0,0,date, getStatus(),getaccountType());
 		TransactionReceipt receipt = new TransactionReceipt(
 				ticket,false,reason,preTransactionBalance,0.0,date,getStatus(),getaccountType());
 		addtransactionReceipt(receipt); 

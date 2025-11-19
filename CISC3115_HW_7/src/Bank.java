@@ -248,7 +248,7 @@ public class Bank {
 	            String type = acc.getaccountType();
 
 	            switch(type) {
-	                case "Saving": 
+	                case "Savings": 
 	                    totalAmountInSavingAccts += balance;
 	                    break;
 	                case "Checking":

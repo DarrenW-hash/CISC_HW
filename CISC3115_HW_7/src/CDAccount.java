@@ -13,7 +13,6 @@ public class CDAccount extends Account{
 	
 	@Override
 	public Account getCopy() {
-		System.out.println("In CD Account getCopy()");
 		return new CDAccount(this);
 	}
 
@@ -96,10 +95,15 @@ public class CDAccount extends Account{
 		}
 	}
 
+	//Clearing a CD account is not allowed
 	@Override
 	public TransactionReceipt clearCheck(TransactionTicket ticket, Calendar checkDate) {
-		// TODO Auto-generated method stub
-		return null;
+		Calendar date = Calendar.getInstance();
+		double preTransactionBalance = getbalance();
+		String reason = "Error only Clear Checking Accounts. " + "Account Type : " + getaccountType();
+		TransactionReceipt receipt = new TransactionReceipt(
+				ticket,false,reason,preTransactionBalance,0.0,date,getStatus(),getaccountType());
+		addtransactionReceipt(receipt); 
+		return receipt;
 	}
-
 }
