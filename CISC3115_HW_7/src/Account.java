@@ -83,23 +83,23 @@ public abstract class Account {
 	}
 	public String getStatus()	{
 		return accountStatus;
-	}
-	
+	}	
 	//setters
 	private void setAccountStatus(String _accountStatus) {
 		accountStatus = _accountStatus;
 	}
-	private void setbalance(double _balance)	{
+	protected void setbalance(double _balance)	{
 		balance = _balance;
 	}
-	private void addtransactionReceipt(TransactionReceipt receipt)	{
+	//protected method
+	protected void addtransactionReceipt(TransactionReceipt receipt)	{
 		transactionReceipts.add(receipt);
 		System.out.println("DEBUG: Added transaction to account " + getAccountNumber() + ", list size now: " + transactionReceipts.size());
 	}
 	private void setcheck(Check _check)	{
 		check = _check;
 	}
-	private void setCalendar(Calendar _date) {
+	protected void setCalendar(Calendar _date) {
 		date = _date;
 	}
 	
@@ -145,9 +145,8 @@ public abstract class Account {
 	            && this.AccountNumber == other.AccountNumber
 	            && this.balance == other.balance;
 	}
-	/* Retrieves the current balance of the account.
+	/*Retrieves the current balance of the account.
 	* Creates a TransactionReceipt to record the balance inquiry.
-	* 	
 	*/
 	public TransactionReceipt getBalance(TransactionTicket ticket){
 		TransactionReceipt receipt;
@@ -156,4 +155,52 @@ public abstract class Account {
 		addtransactionReceipt(receipt);
 		return receipt;
 	}
+	/* Closes the account if it is currently open.
+	 * Validates the current account status and updates it to "Closed" if allowed.
+	 * Records the transaction in the account’s transaction history.
+	 */
+	public TransactionReceipt closeAcct(TransactionTicket ticket) {
+		TransactionReceipt receipt;
+		Calendar currentDate = Calendar.getInstance();
+			
+		if(getStatus().equals("Closed")) {
+			String reason = "Error: Account Number : " + ticket.getAccountnumber()+ " is Already CLOSED";
+			receipt = new TransactionReceipt(ticket, false, reason, 0, 0, currentDate, getStatus(),getaccountType());
+			addtransactionReceipt(receipt); 
+			return receipt;
+				}else {
+					setAccountStatus("Closed");
+					receipt = new TransactionReceipt(ticket, true,0,0, currentDate, getStatus(),getaccountType());
+					addtransactionReceipt(receipt);
+					return receipt;
+			}
+		}
+	/* Reopens the account if it is currently closed.
+	 * Validates the current account status and updates it to "Open" if allowed.
+	 * Records the transaction in the account’s transaction history.
+	 */
+	public TransactionReceipt openAcct(TransactionTicket ticket) {
+		TransactionReceipt receipt;
+		Calendar currentDate = Calendar.getInstance();
+			
+		if(getStatus().equals("Open")) {
+			String reason = "Error: Account Number : " + ticket.getAccountnumber()+ " is Already Open";
+			receipt = new TransactionReceipt(ticket, false, reason, 0, 0, currentDate, getStatus(),getaccountType());
+			addtransactionReceipt(receipt); 
+			return receipt;
+				}else {
+					setAccountStatus("Open");
+					receipt = new TransactionReceipt(ticket, true,0,0, currentDate, getStatus(),getaccountType());
+					addtransactionReceipt(receipt);
+					return receipt;
+		}
+	}
+	//abstract method- to be implemented into CD, Checking, and Saving child Classes
+		public abstract Account getCopy();
+			
+		public abstract TransactionReceipt makeWithDrawal(TransactionTicket ticket, Scanner userinput);
+		
+		public abstract TransactionReceipt makedeposit(TransactionTicket ticket, Scanner userinput);
+		
+		public abstract TransactionReceipt clearCheck(TransactionTicket ticket, Calendar checkDate);
 }
