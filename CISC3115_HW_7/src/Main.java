@@ -2,19 +2,26 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Scanner;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+//import custom made Exceptions
+import Exceptions.*;
 
 public class Main {
 	
-	public static void main (String args [])throws IOException	{
+	public static void main (String args [])
+			throws IOException, InvalidMenuSelectionException, AccountClosedException, CDMaturityDateException, InvalidAccountException, InsufficientFundsException	{
 		File inputFile = new File("C:\\Users\\dweng\\git\\CISC_HW\\CISC3115_HW_7\\input.txt");
 		PrintWriter outputWriter = new PrintWriter("C:\\Users\\dweng\\git\\CISC_HW\\CISC3115_HW_7\\output.txt");
+//		DataOutputStream outputStreamFile = new DataOutputStream(new FileOutputStream("C:\\Users\\dweng\\git\\CISC_HW\\CISC3115_HW_7\\src\\BankAccounts.dat"));
+
 		Scanner userinput = new Scanner(inputFile);
 		String userchoice; 
 		Bank bank = new Bank();
 		readaccts(bank);
-		
+		//bank.readFromBinaryFile();
 		printAccts(bank,outputWriter);
 
 		do {
@@ -80,12 +87,13 @@ public class Main {
 					outputWriter.printf("Total Checking: $ %.2f%n" , bank.getTotalChecking());
 					outputWriter.printf("Total CD: $ %.2f%n" ,bank.getTotalCDAccts());
 					outputWriter.printf("Total All Accounts: $ %.2f%n" ,bank.getTotalAll());
+					bank.readFromBinaryFile();
+					//bank.WritetoBinaryFile();
 					break;
 			
 			
 			default:
-			System.out.println("Not a choice ");
-			break;
+				throw new InvalidMenuSelectionException("Not a choice");
 			}
 		}while(!userchoice.equalsIgnoreCase("Q"));
 		outputWriter.flush();
@@ -125,6 +133,7 @@ public class Main {
 			currentAccount++;
 			bank.addAccounts(account);
 		}
+		bank.readFromBinaryFile();
 		return currentAccount;
 	}
 	public static void menu()	{
@@ -164,7 +173,7 @@ public class Main {
 	 * creates a TransactionTicket, requests the Bank to process it,
 	 * and prints the resulting TransactionReceipt.
 	 */
-	public static void withdrawalMethod(Bank bank, PrintWriter outputWriter, Scanner userinput)	{
+	public static void withdrawalMethod(Bank bank, PrintWriter outputWriter, Scanner userinput) throws AccountClosedException, CDMaturityDateException, InsufficientFundsException	{
 		//ArrayList<Accounts> acc = bank.getbankAccounts();
 		outputWriter.println("Transaction Type : Withdrawal ");
 		System.out.println("Enter Account Number : ");
@@ -181,7 +190,7 @@ public class Main {
 	 * Prompts the user for an account number and deposit amount,
 	 * creates a TransactionTicket, and processes the deposit through the Bank object.
 	 */
-	public static void deposit(Bank bank, Scanner userInput, PrintWriter outputWriter) {
+	public static void deposit(Bank bank, Scanner userInput, PrintWriter outputWriter) throws AccountClosedException, CDMaturityDateException {
 		//ArrayList<Accounts> accounts = bank.getbankAccounts();			
 		outputWriter.println("Transaction: Deposit");
 		System.out.println("Enter Account Number : ");
@@ -199,7 +208,7 @@ public class Main {
 	 * Prompts the user for an account number, creates a TransactionTicket,
 	 * retrieves the current balance through the Bank object, and outputs the result.
 	 */
-	public static void balance(Bank bank, Scanner userInput, PrintWriter outputWriter) {
+	public static void balance(Bank bank, Scanner userInput, PrintWriter outputWriter) throws IOException {
 		//ArrayList<Accounts>accounts = bank.getbankAccounts();
 		outputWriter.println("Transaction: Balance");
 		System.out.println("Enter Account Number : ");
@@ -220,7 +229,7 @@ public class Main {
 	 * creates a Check and TransactionTicket object, and requests the Bank
 	 * to validate and clear the check.
 	 */
-	public static void clearCheck(Bank bank, Scanner userInput, PrintWriter outputWriter) {
+	public static void clearCheck(Bank bank, Scanner userInput, PrintWriter outputWriter) throws InvalidAccountException {
 		//ArrayList<Accounts>accounts = bank.getbankAccounts();
 		outputWriter.println("Transaction: Clear Check");
 		Calendar time = Calendar.getInstance();
@@ -240,7 +249,8 @@ public class Main {
 	    Calendar checkDate = Calendar.getInstance();
 	    checkDate.set(year, month - 1, day);
 	    Check check = new Check(accountNumber, amount, checkDate);
-	   	TransactionTicket ticket = new TransactionTicket(accountNumber, time, "Clear Check", amount,0);			TransactionReceipt receipt = bank.clearCheck(ticket, accountNumber, checkDate);
+	   	TransactionTicket ticket = new TransactionTicket(accountNumber, time, "Clear Check", amount,0);			
+	   	TransactionReceipt receipt = bank.clearCheck(ticket, accountNumber, checkDate);
 //		printTransactionReceipt(bank,outputWriter,receipt);
 	   	outputWriter.println(receipt.toString());
 	}
@@ -248,7 +258,7 @@ public class Main {
 	 * Prompts the user for personal and account information, constructs the appropriate
 	 * Account object, and delegates account creation to the Bank class.
 	 */
-	public static void newAccount(Bank bank, Scanner userInput, PrintWriter outputWriter) {
+	public static void newAccount(Bank bank, Scanner userInput, PrintWriter outputWriter) throws IOException{
 		//ArrayList<Accounts>accounts = bank.getbankAccounts();
 		System.out.println("Enter First Name: ");
 		String firstName = userInput.next();
@@ -280,6 +290,7 @@ public class Main {
 		        	outputWriter.println(receipt.toString());
 		        }else {
 		        	// Print success message including maturity date	
+		        	bank.appendAcc(newAccount);
 		        	outputWriter.println(receipt.toString());
 		        }
 
@@ -291,6 +302,8 @@ public class Main {
 			    if(receipt.getTransactionSuccessIndicatorFlag() == false) {
 			    	outputWriter.println(receipt.toString());
 		        }else {
+		        	//Print success message
+		        	bank.appendAcc(newAccount);
 		        	outputWriter.println(receipt.toString());
 		        }
 		    }else {
@@ -301,6 +314,8 @@ public class Main {
 			    if(receipt.getTransactionSuccessIndicatorFlag() == false) {
 			    	outputWriter.println(receipt.toString());
 		        }else {
+		        	//Print success message
+		        	bank.addAccounts(newAccount);
 		        	outputWriter.println(receipt.toString());
 		        }
 		    }
@@ -343,7 +358,7 @@ public class Main {
 	 * If no matching account exists or there are no transactions, appropriate messages are displayed 
 	 */
 
-	public static void acctInfoHistory(Bank bank, Scanner userInput, PrintWriter outputWriter) {
+	public static void acctInfoHistory(Bank bank, Scanner userInput, PrintWriter outputWriter) throws IOException {
 	    int numOfAccts = bank.getbankSize();
 	    System.out.print("SSN: ");
 	    String socialSecurityNumber = userInput.next();
@@ -362,6 +377,7 @@ public class Main {
 	                outputWriter.println("No transactions yet.");
 	            } else {
 	                outputWriter.println("***** Account Transactions (Full Receipt Details) *****");
+	                acc.readTransactions(acc.getAccountNumber());
 	                for (TransactionReceipt receipt : receipts) {
 	                    outputWriter.println(receipt.toString());
 	                    outputWriter.println("------------------------");
@@ -385,7 +401,7 @@ public class Main {
 	 * Creates a "Close Account" transaction, requests the Bank to process it,
 	 * and prints the updated account status or an error message if the account is not found.
 	 */
-	public static void closeAcct(Bank bank, Scanner userinput, PrintWriter outputWriter) {
+	public static void closeAcct(Bank bank, Scanner userinput, PrintWriter outputWriter) throws IOException {
 	    Calendar time = Calendar.getInstance();
 	    System.out.print("Enter Account Number to Close: ");
 	    int acctNum = userinput.nextInt();
@@ -398,7 +414,7 @@ public class Main {
 	 * Creates an "Open Account" transaction, requests the Bank to process it,
 	 * and prints the updated account status or an error message if the account is not found.
 	 */
-	public static void reopenAcct(Bank bank, Scanner userinput, PrintWriter outputWriter) {
+	public static void reopenAcct(Bank bank, Scanner userinput, PrintWriter outputWriter) throws IOException {
 	    Calendar time = Calendar.getInstance();
 	    System.out.print("Enter Account Number to Reopen: ");
 	    int acctNum = userinput.nextInt();
@@ -410,7 +426,7 @@ public class Main {
 	 * Creates a "Delete Account" transaction, requests the Bank to process it,
 	 * and prints an error message if the deletion fails.
 	 */
-	public static void deleteAcct(Bank bank, Scanner userinput, PrintWriter outputWriter) {
+	public static void deleteAcct(Bank bank, Scanner userinput, PrintWriter outputWriter) throws IOException {
 		//ArrayList<Accounts>accounts = bank.getbankAccounts();
 		Calendar time = Calendar.getInstance();
 		// Prompt user to enter the account number to delete

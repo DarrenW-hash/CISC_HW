@@ -1,7 +1,15 @@
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.util.Scanner;
+//import custom 
+import Exceptions.*;
 
 
 public class Bank {
@@ -13,8 +21,24 @@ public class Bank {
 	private static double totalAmountInCheckingAccts;
 	private static double totalAmountInCDAccts;
 	private static double totalAmountInAllAccts;
+	private static final int ACCSIZE_LENGTH = 4;
+	private static final int NAME_LENGTH = 30; // 30 chars * 2 bytes/char = 60 bytes
+    private static final int SSN_LENGTH = 15;  // 15 chars * 2 bytes/char = 30 bytes
+    private static final int TYPE_LENGTH = 10; // 10 chars * 2 bytes/char = 20 bytes
+    private static final int STATUS_LENGTH = 10; // 10 chars * 2 bytes/char = 20 bytes
+    private static final int RECEIPT_FILE_NAME_LENGTH = 20; // e.g., "TR_100001.dat" (20 chars * 2)
+    private static final int DATE_LENGTH = 12; // "MM/DD/YYYY" (12 chars * 2)
+    private static final int RECORD_SIZE = (NAME_LENGTH * 2) +  // lastName
+    	    (NAME_LENGTH * 2) +  // firstName
+    	    (SSN_LENGTH * 2) +   // SSN
+    	    4 +                  // accountNumber (int)
+    	    (TYPE_LENGTH * 2) +  // accountType
+    	    (STATUS_LENGTH * 2) +// status
+    	    8 +                  // balance (double)
+    	    4 + 4 + 4;           // CD year, month, day (int); 
 	
-	
+//	DataOutputStream outputStreamFile = new DataOutputStream(new FileOutputStream("C:\\Users\\dweng\\git\\CISC_HW\\CISC3115_HW_7\\src\\BankAccounts.dat"));
+
 	
 	Bank(){
 		bankAccounts = new ArrayList<>();
@@ -72,16 +96,184 @@ public class Bank {
 		return index;
 	}
 	
-	public void addAccounts(Account Acc)	{
-		//System.out.println("Added Account");
-		bankAccounts.add(Acc);
+	public void WritetoBinaryFile() throws IOException {
+		try(RandomAccessFile raf = new RandomAccessFile("C:\\Users\\dweng\\git\\CISC_HW\\CISC3115_HW_7\\src\\BankAccounts.dat","rw")){
+			//writes the total account count first
+			raf.seek(0);
+			raf.writeInt(bankAccounts.size());
+			
+			for(int i = 0; i < bankAccounts.size(); i ++) {
+				raf.seek(ACCSIZE_LENGTH + i *RECORD_SIZE);
+				writeFixedAccountString(bankAccounts.get(i),raf);
+			}
+			
+		}catch(FileNotFoundException e) {
+			System.out.println("File not Found");
+		}
 	}
 	
+	private void writeFixedAccountString(Account acc, RandomAccessFile raf) throws IOException{
+		writeFixedString(acc.getdepositor().getNames().getLastName(),NAME_LENGTH,raf);
+		writeFixedString(acc.getdepositor().getNames().getFirstName(),NAME_LENGTH,raf);
+		writeFixedString(acc.getdepositor().getSSnumber(), SSN_LENGTH, raf);
+		raf.writeInt(acc.getAccountNumber());
+		writeFixedString(acc.getaccountType(),TYPE_LENGTH, raf);
+		writeFixedString(acc.getStatus(),STATUS_LENGTH,raf);
+		raf.writeDouble(acc.getbalance());
+		if(acc.getaccountType().equals("CD")) {
+			Calendar maturityDate = acc.getDate();
+			raf.writeInt(maturityDate.get(Calendar.YEAR));
+			raf.writeInt(maturityDate.get(Calendar.MONTH));
+			raf.writeInt(maturityDate.get(Calendar.DAY_OF_MONTH));
+		}else {
+	        raf.writeInt(0);
+	        raf.writeInt(0);
+	        raf.writeInt(0);
+	    }
+	}
+	private void writeFixedString(String s, int size, RandomAccessFile raf)throws IOException {
+		for(int i = 0; i < size; i++) {
+			if(i <s.length()) {
+				raf.writeChar(s.charAt(i));
+			}else {
+				raf.writeChar(' ');
+			}
+		}
+	}
+	
+	public void appendAcc(Account newAcc) throws IOException {
+		boolean AccountExist = false;
+		try(RandomAccessFile raf  = new RandomAccessFile("C:\\Users\\dweng\\git\\CISC_HW\\CISC3115_HW_7\\src\\BankAccounts.dat","rw")){
+			//get the current count
+			raf.seek(0);
+			int count = raf.readInt();
+			for(int i = 0; i < count; i++) {
+				raf.seek(ACCSIZE_LENGTH  + i * RECORD_SIZE + 2 * NAME_LENGTH * 2 + SSN_LENGTH * 2);
+				int existingAcctNumber = raf.readInt();
+				if(existingAcctNumber == newAcc.getAccountNumber()) {
+					return;
+				}
+			}
+			long pos = ACCSIZE_LENGTH  + (long)count * RECORD_SIZE;
+			raf.seek(pos);
+			
+			writeFixedAccountString(newAcc, raf);
+			raf.seek(0);
+			raf.writeInt(count + 1);
+		}
+	}
+	public void addAccounts(Account Acc) throws IOException {
+		bankAccounts.add(Acc);
+		WritetoBinaryFile();
+	}
+	
+	public void readFromBinaryFile() throws IOException {
+		File testFile = new File("C:\\Users\\dweng\\git\\CISC_HW\\CISC3115_HW_7\\src\\RCTestFile.txt");
+		PrintWriter writer = new PrintWriter(testFile);
+		File file = new File("C:\\Users\\dweng\\git\\CISC_HW\\CISC3115_HW_7\\src\\BankAccounts.dat");
+		try(RandomAccessFile raf = new RandomAccessFile(file, "r")){
+			raf.seek(0);
+			int count = raf.readInt();
+			
+			for(int i  = 0; i < count; i++ ) {
+				raf.seek(ACCSIZE_LENGTH + i*RECORD_SIZE);
+				
+				//readNames
+				String lastName = readFixedString(raf, NAME_LENGTH).trim();
+				String firstName = readFixedString(raf, NAME_LENGTH).trim();
+	            String ssn = readFixedString(raf, SSN_LENGTH).trim();
+
+	            int accountNumber = raf.readInt();
+	            String accountType = readFixedString(raf, TYPE_LENGTH).trim();
+	            String status = readFixedString(raf, STATUS_LENGTH).trim();
+	            double balance = raf.readDouble();
+
+	            Depositor depositor = new Depositor(new Name(firstName, lastName), ssn);
+	            Account acc = null;
+
+	            if (accountType.equalsIgnoreCase("CD")) {
+	                // Read maturity date
+	                int year = raf.readInt();
+	                int month = raf.readInt();
+	                int day = raf.readInt();
+	                Calendar maturityDate = Calendar.getInstance();
+	                maturityDate.set(year, month, day);
+	                acc = new CDAccount(depositor, accountNumber, accountType, balance, status, maturityDate);
+	                writer.println(lastName + firstName + ssn + " " + accountNumber + status + balance + "CD" + maturityDate);
+
+	            } else if (accountType.equalsIgnoreCase("Savings")) {
+	                acc = new SavingAccounts(depositor, accountNumber, accountType, balance, status);
+	                writer.println(lastName + firstName + ssn + " " + accountNumber + status + balance + "Saving");
+	            } else if (accountType.equalsIgnoreCase("Checking")) {
+	                acc = new CheckingAccount(depositor, accountNumber, accountType, balance, status);
+	                writer.println(lastName + firstName + ssn + " " + accountNumber + status + balance + "Checking");
+	            }
+
+	            // Add to bank
+//	            bankAccounts.add(acc);
+	        }
+			writer.flush();
+	    } catch (IOException e) {
+	        System.out.println("Error reading file: " + e.getMessage());
+	    }
+	}
+	
+	private String readFixedString(RandomAccessFile raf, int size) throws IOException{
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < size; i ++) {
+			sb.append(raf.readChar());
+		}
+		return sb.toString();
+	}
+	public void deleteAccFromFile(int accountNumber) throws IOException {
+	    try (RandomAccessFile raf = new RandomAccessFile("C:\\Users\\dweng\\git\\CISC_HW\\CISC3115_HW_7\\src\\BankAccounts.dat", "rw")) {
+	        raf.seek(0);
+	        int count = raf.readInt();
+	        if (count == 0) return; // nothing to delete
+
+	        int deleteIndex = -1;
+
+	        // Find the index of the account to delete
+	        for (int i = 0; i < count; i++) {
+	            raf.seek(ACCSIZE_LENGTH + i * RECORD_SIZE + 2 * NAME_LENGTH * 2 + SSN_LENGTH * 2);
+	            int acctNum = raf.readInt();
+	            if (acctNum == accountNumber) {
+	                deleteIndex = i;
+	                break;
+	            }
+	        }
+
+	        if (deleteIndex == -1) return; // account not found
+
+	        // If deleting the last account, just decrement count and truncate
+	        if (deleteIndex == count - 1) {
+	            raf.setLength(ACCSIZE_LENGTH + (count - 1) * RECORD_SIZE);
+	        } else {
+	            // Read last account
+	            long lastPos = ACCSIZE_LENGTH + (count - 1) * RECORD_SIZE;
+	            byte[] lastRecord = new byte[RECORD_SIZE];
+	            raf.seek(lastPos);
+	            raf.readFully(lastRecord);
+
+	            // Overwrite the deleted account with last account
+	            long deletePos = ACCSIZE_LENGTH + deleteIndex * RECORD_SIZE;
+	            raf.seek(deletePos);
+	            raf.write(lastRecord);
+
+	            // Truncate file
+	            raf.setLength(ACCSIZE_LENGTH + (count - 1) * RECORD_SIZE);
+	        }
+
+	        // Update account count
+	        raf.seek(0);
+	        raf.writeInt(count - 1);
+	    }
+	}
 	/* Processes a withdrawal request for a specific account.
 	 * Finds the account by account number, and if found, delegates the withdrawal
 	 * to the Account object. If the account is not found, returns a failure receipt.
 	 */
-	public TransactionReceipt makeWithdrawal(TransactionTicket ticket, int accountNumber, Scanner userinput) {
+	public TransactionReceipt makeWithdrawal(TransactionTicket ticket, int accountNumber, Scanner userinput) throws AccountClosedException, CDMaturityDateException, InsufficientFundsException {
 		int index = findAcct(accountNumber);
 		if(index == -1) {
 			String ReasonForFailure  = "Error Account Number:" + accountNumber +" not found.";
@@ -96,7 +288,7 @@ public class Bank {
 	 * Finds the account by account number, and if found, delegates the deposit
 	 * to the Account object. If the account is not found, returns a failure receipt.	
 	 */
-	public TransactionReceipt makedeposit(TransactionTicket ticket, int accountNumber, Scanner userinput) {
+	public TransactionReceipt makedeposit(TransactionTicket ticket, int accountNumber, Scanner userinput) throws AccountClosedException, CDMaturityDateException {
 		int index = findAcct(accountNumber);
 		if(index == -1) {
 			String ReasonforFailure = "Error Account Number " + accountNumber + " not found.";
@@ -111,7 +303,7 @@ public class Bank {
 	 * Finds the account by account number, and if found, delegates the balance
 	 * retrieval to the Account object. If the account is not found, returns a failure receipt.	
 	 */
-	public TransactionReceipt getBalance(TransactionTicket ticket, int accountNumber) {
+	public TransactionReceipt getBalance(TransactionTicket ticket, int accountNumber) throws IOException {
 		int index = findAcct(accountNumber);
 		if(index == -1) {
 			String ReasonforFailure = "Error Account Number " + accountNumber + " not found.";
@@ -125,7 +317,7 @@ public class Bank {
 	 * Finds the account by account number, and if found, delegates the check clearing
 	 * to the Account object. If the account is not found, returns a failure receipt.
 	 */
-	public TransactionReceipt clearCheck(TransactionTicket ticket, int accountNumber, Calendar checkDate) {
+	public TransactionReceipt clearCheck(TransactionTicket ticket, int accountNumber, Calendar checkDate) throws InvalidAccountException {
 		int index = findAcct(accountNumber);
 		if(index == -1) {
 			String ReasonforFailure = "Error Account Number" + accountNumber + " not found.";
@@ -193,7 +385,7 @@ public class Bank {
 	 * Finds the account by account number, and if found, delegates the closing
 	 * operation to the Account object. If the account is not found, returns a failure receipt.
 	 */
-	public TransactionReceipt closeAcct(TransactionTicket ticket, int accountNumber) {
+	public TransactionReceipt closeAcct(TransactionTicket ticket, int accountNumber) throws IOException {
 		int index = findAcct(accountNumber);
 		if(index == -1) {
 			String ReasonforFailure = "Error Account Number " + accountNumber + " not found.";
@@ -207,7 +399,7 @@ public class Bank {
 	 * Finds the account by account number, and if found, delegates the reopening
 	 * operation to the Account object. If the account is not found, returns a failure receipt.
 	 */
-	public TransactionReceipt openAcct(TransactionTicket ticket, int accountNumber) {
+	public TransactionReceipt openAcct(TransactionTicket ticket, int accountNumber) throws IOException {
 		int index = findAcct(accountNumber);
 		if(index == -1) {
 			String ReasonforFailure = "Error Account Number " + accountNumber + " not found.";
@@ -221,7 +413,7 @@ public class Bank {
 	 * Finds the account by account number, validates balance, and removes it from the bank's list.
 	 * Returns a TransactionReceipt indicating success or failure.
 	 */
-	public TransactionReceipt deleteAcct(TransactionTicket ticket, int accountNumber) {
+	public TransactionReceipt deleteAcct(TransactionTicket ticket, int accountNumber) throws IOException {
 		int index = findAcct(accountNumber);
 		if(index == -1) {
 			String ReasonforFailure = "Error Account Number " + accountNumber + " not found.";
@@ -234,6 +426,7 @@ public class Bank {
 					return Receipt;
 				}else {
 					bankAccounts.remove(index);
+					deleteAccFromFile(accountNumber);
 					TransactionReceipt Receipt = new TransactionReceipt(ticket, true, 0.0,0.0,Calendar.getInstance(),getbankAccounts(index).getStatus(), getbankAccounts(index).getaccountType());
 					return Receipt;
 			}
@@ -261,5 +454,5 @@ public class Bank {
 	            totalAmountInAllAccts += balance;
 	        }
 		}
-	}	
+	}
 }

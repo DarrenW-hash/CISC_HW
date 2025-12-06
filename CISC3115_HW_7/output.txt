@@ -35,9 +35,9 @@ Transaction Type : Withdrawal
 Account Number : 875842
 Withdrawal Amount : 200.00
 Old Balance : 1000.50
-New Balance : 800.50
+New Balance : 1200.50
 Account Status :Open
-CD New Maturity Date : 11/19/27
+CD New Maturity Date : 12/05/27
 
 Transaction Type : Withdrawal 
 Transaction Failed 
@@ -48,13 +48,13 @@ Reason : Error: Account Number : 101112 is CLOSED
 Transaction Type : Withdrawal 
 Transaction Failed 
 Account Number 223344
-Reason : Error: Insufficient funds. Withdrawal Amount: 10000.00. Current Balance: 9450.20
+Reason : Error: Insufficient funds. Transaction Amount: 10000.00 | Current Balance: 9450.20
 ------------------------ 
 
 Transaction Type : Withdrawal 
 Transaction Failed 
 Account Number 654321
-Reason : Error: Invalid Withdrawal input: -10.00
+Reason : Error: Invalid WITHDRAWAL input: -10.00
 ------------------------ 
 
 Transaction Type : Withdrawal 
@@ -64,10 +64,12 @@ Reason : Error Account Number:157722 not found.
 ------------------------ 
 
 Transaction Type : Withdrawal 
-Transaction Failed 
-Account Number 222222
-Reason : Error: Maturity Date 11/25/2025 not reached 
------------------------- 
+Account Number : 222222
+Withdrawal Amount : 100.00
+Old Balance : 5200.55
+New Balance : 5100.55
+Account Status :Open
+CD New Maturity Date : 12/05/25
 
 Transaction Type : Withdrawal 
 Account Number : 333333
@@ -89,7 +91,7 @@ Deposit Amount : 20.20
 Old Balance : 500.00
 New Balance : 520.20
 Account Status :Open
-CD New Maturity Date : 11/19/27
+CD New Maturity Date : 12/05/27
 
 Transaction: Deposit
 Account Number : 123456
@@ -101,7 +103,7 @@ Account Status :Open
 Transaction: Deposit
 Transaction Failed 
 Account Number 654321
-Reason : Error: Invalid Deposit input: -80.00
+Reason : Error: Invalid DEPOSIT input: -80.00
 ------------------------ 
 
 Transaction: Deposit
@@ -119,7 +121,7 @@ Reason : Error: Maturity Date 12/25/2025 not reached
 Transaction: Clear Check
 Transaction Failed 
 Account Number 345678
-Reason : Error: Cannot clear stale check (older than 6 months). Check Date: 12/1/2002. Oldest Acceptable Date: 5/19/2025
+Reason : Error: Check is too old (older than 6 months). Check Date: 12/01/2002. Oldest Acceptable Date: 06/05/2025.
 ------------------------ 
 
 Transaction: Clear Check
@@ -131,7 +133,7 @@ Reason : Error only Clear Checking Accounts. Account Type : Savings
 Transaction: Clear Check
 Transaction Failed 
 Account Number 199753
-Reason : Error:Check not cleared - Post-dated check: 12/21/2025
+Reason : Error: Check is post-dated. Check Date: 12/21/2025
 ------------------------ 
 
 Transaction: Clear Check
@@ -150,7 +152,7 @@ Reason : Error: Account Number : 445566 is CLOSED
 Transaction: Clear Check
 Transaction Failed 
 Account Number 778899
-Reason : Error: Insufficient funds. $2.50 service fee applied for bounced check - Old Balance : 678.25 | New Balance : 675.75
+Reason : Error: Insufficient funds. Transaction Amount: 1000.00 | Current Balance: 678.25
 ------------------------ 
 
 Transaction: New Account
@@ -159,14 +161,15 @@ Account Type : Checking
 Account Status : Closed
 
 Transaction: New Account
-Account Number :227358 has been CREATED 
+Account Number :776451 has been CREATED 
 Account Type : Saving
 Account Status : Open
 
 Transaction: New Account
-Account Number :776451 has been CREATED 
-Account Type : Checking
-Account Status : Closed
+Account Number :227348 has been CREATED 
+Account Type : CD
+Account Status : Open
+Maturity Date: 12/05/25
 
 Transaction: New Account
 Transaction Failed 
@@ -175,15 +178,17 @@ Reason : Error Account Number 199753 Exist.
 ------------------------ 
 
 Transaction: Deposit
-Transaction Failed 
-Account Number 776451
-Reason : Error: Maturity Date 11/20/2025 not reached 
------------------------- 
+Account Number : 776451
+Deposit Amount : 1000.24
+Old Balance : 0.00
+New Balance : 1000.24
+Account Status :Open
+CD New Maturity Date : 06/05/26
 
 Transaction: Balance
 Account Number : 776451
 Account Type : CD
-Balance : 0.0
+Balance : 1000.24
 
 Transaction: Balance
 Transaction Failed 
@@ -211,12 +216,14 @@ Account Status :Open
 
 ------------------------
 
-Doe          John         123445678    222222     CD           Open         5200.55        12/25/25
+Doe          John         123445678    222222     CD           Open         5100.55        12/25/25
 ***** Account Transactions (Full Receipt Details) *****
-Transaction Failed 
-Account Number 222222
-Reason : Error: Maturity Date 11/25/2025 not reached 
------------------------- 
+Account Number : 222222
+Withdrawal Amount : 100.00
+Old Balance : 5200.55
+New Balance : 5100.55
+Account Status :Open
+CD New Maturity Date : 12/05/25
 
 ------------------------
 Transaction Failed 
@@ -240,14 +247,14 @@ Account Status :Open
 Transaction: Account Info With Transaction History
 First Name   Last Name    SSN          Acct Num   Acct Type    Status       Balance    Maturity Date  
 ----------------------------------------------------------------------------------------------------------------
-lock         Heart        266753126    875842     CD           Open         800.50         11/19/27
+lock         Heart        266753126    875842     CD           Open         1200.50        12/05/27
 ***** Account Transactions (Full Receipt Details) *****
 Account Number : 875842
 Withdrawal Amount : 200.00
 Old Balance : 1000.50
-New Balance : 800.50
+New Balance : 1200.50
 Account Status :Open
-CD New Maturity Date : 11/19/27
+CD New Maturity Date : 12/05/27
 
 ------------------------
 
@@ -260,7 +267,7 @@ Doe          Jane         456789012    123123     Savings      Open         8765
 Transaction: Account Info
 First Name   Last Name    SSN          Acct Num   Acct Type    Status       Balance    Maturity Date  
 Doe          John         123445678    123456     Savings      Open         277.10    
-Doe          John         123445678    222222     CD           Open         5200.55        12/25/25
+Doe          John         123445678    222222     CD           Open         5100.55        12/25/25
 Doe          John         123445678    333333     Checking     Open         849.74    
 
 Transaction: Close Account
@@ -346,18 +353,18 @@ Reason : Error Account Number 665451 not found.
 ------------------------ 
 
 Transaction: Delete Account
-Account Number 227358 has been DELETED 
+Account Number 227348 has been DELETED 
 
 
 Ending Program
 Updated Bank Account
 First Name   Last Name    SSN          ACCT NUM   ACCT TYPE    STATUS       BALANCE      MATURITY DATE
 Doe          John         123445678    123456     Savings      Open         277.10    
-Doe          John         123445678    222222     CD           Open         5200.55        12/25/25
+Doe          John         123445678    222222     CD           Open         5100.55        12/25/25
 Doe          John         123445678    333333     Checking     Closed       849.74    
 Beam         Jim          234556789    567890     Checking     Open         1234.56   
 Eyre         Jane         345667890    987654     Savings      Closed       2.33      
-Sawyer       Tom          456778901    234567     CD           Open         520.20         11/19/27
+Sawyer       Tom          456778901    234567     CD           Open         520.20         12/05/27
 Finn         Huck         567889012    345678     Checking     Open         123.98    
 Finn         Huck         567889012    654321     Savings      Open         543.66    
 Spratt       Jack         678990123    785609     Savings      Open         333.33    
@@ -365,7 +372,7 @@ Doe          Jane         456789012    389765     Checking     Closed       888.
 Doe          Jane         456789012    123123     Savings      Open         8765.43   
 He           Man          645351534    199753     Checking     Open         751.40    
 Apple        leo          645455163    886241     Checking     Closed       12.50     
-lock         Heart        266753126    875842     CD           Open         800.50         11/19/27
+lock         Heart        266753126    875842     CD           Open         1200.50        12/05/27
 Kent         Clark        789012345    112233     Checking     Open         1080.75   
 Wayne        Bruce        890123456    223344     Savings      Open         9450.20   
 Prince       Diana        901234567    334455     CD           Open         7500.00        09/15/26
@@ -376,9 +383,10 @@ Potter       Harry        567432890    889900     Savings      Open         1045
 Granger      Hermione     678543901    990011     CD           Open         12500.00       01/01/27
 Malfoy       Draco        789654012    101112     Checking     Open         282.60    
 Derick       Johnson      253678532    112375     Saving       Open         0.00      
-Sarch        All          884525367    776451     CD           Open         0.00           11/20/25
+Sarch        All          884525367    776451     CD           Open         1000.24        06/05/26
+Darren       Chen         556637463    227348     Checking     Closed       0.00      
 
 Total Savings: $ 29822.60
 Total Checking: $ 5984.84
-Total CD: $ 29021.25
-Total All Accounts: $ 64828.69
+Total CD: $ 30321.49
+Total All Accounts: $ 66128.93
